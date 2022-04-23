@@ -16,26 +16,25 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with: 
+          node-version: "14.x"
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: ls
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run test
+        run: npm test
         
-      # Runs a set of commands using the runners shell
-      - name: Login to Heroku Container registry
-        env: 
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: heroku container:login 
-      
-      - name: Build and push
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:push -a devcation-23 web 
-        
-      - name: Release
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web --app devcation-23
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "devcation-23" #Must be unique in Heroku
+          heroku_email: "anmolvirdi70@gmail.com"
